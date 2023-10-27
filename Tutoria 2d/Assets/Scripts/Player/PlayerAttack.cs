@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour
 {
+    [Header("Attack Controller")]
+
     public bool targetEnemyHealth;
     PlayerMovement movementScript;
 
@@ -12,31 +14,62 @@ public class PlayerAttack : MonoBehaviour
     public LayerMask EnemyLayer;
 
     public float attackRange = 0.5f;
-    public int attackDamage = 25;
+    public int attackDamage;
+    public int storedAttackDamage;
 
     public float attackRate = 2f;
-    float attackCooldown = 0;
+
+    public bool canAttack;
+
     bool facingRight;
 
     private float xPositivePosition, xNegativePosition;
+
+    [Header("Combo Controller")]
+
+    public Animator anim;
+    public int combo;
+
     private void Start()
     {
+        canAttack = true;
+
+        anim = GetComponent<Animator>();
         movementScript = GetComponent<PlayerMovement>();
+
+        storedAttackDamage = attackDamage;
+
         xPositivePosition = fist.position.x;
         xNegativePosition = xPositivePosition * -1;
     }
     private void Update()
     {
-        if (Time.time >= attackCooldown)
+        if (canAttack)
         {
             if (Input.GetKeyDown(KeyCode.Mouse0))
             {
+                anim.SetTrigger("" + combo);
                 Attack();
-                attackCooldown = Time.time + 1 / attackRate;
+                canAttack = false;
             }
         }
-        
+
         FlipFist();
+    }
+    public void StartCombo(int i)
+    {
+        attackDamage += i;
+        canAttack = true;
+        if (combo < 3)
+        {
+            combo++;
+        }
+    }
+    public void FinishCombo()
+    {
+        canAttack = true;
+        attackDamage = storedAttackDamage;
+        combo = 0;
     }
     private void Attack()
     {

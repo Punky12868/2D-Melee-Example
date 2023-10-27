@@ -10,6 +10,22 @@ public class PlayerMovement : MonoBehaviour
     public float speed, runSpeed, jumpForce, gravityModifier;
     private float walkSpeed;
 
+    public float dashForce;
+
+    private bool isDahsing;
+    private bool stopDash;
+
+    public float isDahsingCooldown;
+    private float dahsingCooldown;
+
+    public float buttonCooldownTime;
+    private float buttonCooldown;
+
+    private KeyCode dashKey;
+    private KeyCode currentDashKey;
+
+    private int buttonCount;
+
     Rigidbody2D rb;
     private void Start()
     {
@@ -25,9 +41,12 @@ public class PlayerMovement : MonoBehaviour
         h = Input.GetAxisRaw("Horizontal");
         if (!knockbackScript.knockback)
         {
-            Run();
-            Jump();
-            Flip();
+            if (!isDahsing)
+            {
+                Run();
+                Jump();
+                Flip();
+            }
         }
 
         ChangeGravity();
@@ -36,8 +55,14 @@ public class PlayerMovement : MonoBehaviour
     {
         if (!knockbackScript.knockback)
         {
-            rb.velocity = new Vector2(h * speed, rb.velocity.y);
+            Dash();
+
+            if (!isDahsing)
+            {
+                rb.velocity = new Vector2(h * speed, rb.velocity.y);
+            }
         }
+        
     }
     private void Run()
     {
@@ -74,5 +99,69 @@ public class PlayerMovement : MonoBehaviour
         {
             GetComponent<SpriteRenderer>().flipX = true;
         }
+    }
+    private void Dash()
+    {
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            if (buttonCooldown > 0 && buttonCount == 1)
+            {
+                rb.velocity = new Vector2(dashForce, 0);
+                isDahsing = true;
+                dahsingCooldown = isDahsingCooldown;
+            }
+            else
+            {
+                buttonCooldown = buttonCooldownTime;
+                buttonCount += 1;
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            if (buttonCooldown > 0 && buttonCount == 1)
+            {
+                rb.velocity = new Vector2(-dashForce, 0);
+                isDahsing = true;
+                dahsingCooldown = isDahsingCooldown;
+            }
+            else
+            {
+                buttonCooldown = buttonCooldownTime;
+                buttonCount += 1;
+            }
+        }
+
+        if (buttonCooldown > 0)
+        {
+
+            buttonCooldown -= 1 * Time.fixedDeltaTime;
+
+        }
+        else
+        {
+            buttonCount = 0;
+        }
+
+        if (dahsingCooldown > 0)
+        {
+
+            dahsingCooldown -= 1 * Time.fixedDeltaTime;
+        }
+        else
+        {
+            if (isDahsing)
+            {
+                stopDash = true;
+            }
+
+            isDahsing = false;
+        }
+
+        if (stopDash)
+        {
+            rb.velocity = Vector2.zero;
+            stopDash = false;
+        }
+        
     }
 }
